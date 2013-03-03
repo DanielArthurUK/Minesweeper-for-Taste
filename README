@@ -1,1 +1,13 @@
-Minesweeper for Java.
+Minesweeper for Java - By Osama Alqasim
+
+Requirements:
+- Java Runtime Environment 6 or greater
+
+Installation instructions:
+- If using the included .jar file, be sure to mark it as executable first.
+
+Features:
+- 3 difficulty levels
+- Middle click functionality
+- High scores table
+- Screen shake
