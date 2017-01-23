@@ -1,19 +1,25 @@
+package minesweeper;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JOptionPane;
+
+import uk.danielarthur.tasteapi.TasteDevice;
 
 public class FrameKeyListener implements KeyListener {
 
 	// REFERENCES TO OTHER CLASSES
 	private GameLogic gl;
 	private Display d;
+        private TasteDevice td;
 	
 	// CONSTRUCTOR
-	public FrameKeyListener(GameLogic gl, Display d)
+	public FrameKeyListener(GameLogic gl, Display d, TasteDevice td)
 	{
 		this.gl = gl;
 		this.d = d;
+                this.td = td;
 	}
 
 	// OTHER METHODS
@@ -29,14 +35,14 @@ public class FrameKeyListener implements KeyListener {
 				d.f.dispose();
 				gl.timerThread.interrupt();
 				gl.timerThread.stop();
-				new Display(tempGridSize, d.animate);
+				new Display(tempGridSize, d.animate, td);
 			}
 		}
 		else
 		{
 			d.f.dispose();
 			gl.timerThread.interrupt();
-			new Display(tempGridSize, d.animate);				
+			new Display(tempGridSize, d.animate, td);				
 		}
 	}
 	private void newGame() {

@@ -1,3 +1,5 @@
+package minesweeper;
+
 public class ShakeTheScreen implements Runnable {
 
 	// REFERENCES TO OTHER CLASSES
