@@ -61,6 +61,8 @@ public class WelcomeDisplay {
                 try {
                     TasteDevice td = new TasteDevice("Minesweeper Taste", comPort);
                     new Display("small", false, td);
+                    f.setVisible(false);
+                    f.dispose();
                 } catch (NoSuchPortException ex) {
                     JOptionPane.showMessageDialog(f, "Error: This port does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
                 } catch (PortInUseException ex) {
