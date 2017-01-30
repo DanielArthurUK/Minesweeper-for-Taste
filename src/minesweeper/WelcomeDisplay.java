@@ -26,6 +26,8 @@ public class WelcomeDisplay {
     private JLabel infoLabel;
     private JTextField comPortField;
     private JButton submitButton;
+    private JButton noTasteButton;
+    private JPanel buttonsPanel;
     
     
     public WelcomeDisplay() {
@@ -44,11 +46,18 @@ public class WelcomeDisplay {
     private void setUpComponents() {
         infoLabel = new JLabel("Please enter the COM Port of the connected taste device:");
         comPortField = new JTextField();
-        submitButton = new JButton("Submit");
+        
+        buttonsPanel = new JPanel(new BorderLayout());
+        
+        submitButton = new JButton("Start");
+        noTasteButton = new JButton("Use Without Taste");
+        
+        buttonsPanel.add(submitButton, BorderLayout.WEST);
+        buttonsPanel.add(noTasteButton, BorderLayout.EAST);
         
         f.getContentPane().add(infoLabel, BorderLayout.NORTH);
         f.getContentPane().add(comPortField, BorderLayout.CENTER);
-        f.getContentPane().add(submitButton, BorderLayout.SOUTH);
+        f.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
         
         f.pack();
     }
@@ -60,7 +69,7 @@ public class WelcomeDisplay {
                 String comPort = comPortField.getText();
                 try {
                     TasteDevice td = new TasteDevice("Minesweeper Taste", comPort);
-                    new Display("small", false, td);
+                    new Display("small", td);
                     f.setVisible(false);
                     f.dispose();
                 } catch (NoSuchPortException ex) {
@@ -71,6 +80,16 @@ public class WelcomeDisplay {
                 
             }
         
+        });
+        
+        noTasteButton.addActionListener(new ActionListener() {    
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new Display("small", null);
+                f.setVisible(false);
+                f.dispose();
+            }
+            
         });
     }
     

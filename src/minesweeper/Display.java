@@ -11,6 +11,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -22,22 +23,19 @@ public class Display {
 	public JFrame f;
 	public JPanel pnlTop, pnlTopE, pnlTopC, pnlTopW, pnlMinefield, pnlBottom, pnlBottomE, pnlBottomC, pnlBottomW;
 	public JButton[][] mines;
-	public JButton highScores, newGame, help;
+	public JButton newGame, help;
 	public JTextField tfTime, tfMine;
 	public JLabel imgTime, imgMine, imgFlag, animationStatus;
 	public ImageIcon iconMine, iconFlag;
 	
 	// REFERENCES TO OTHER CLASSES
 	private GameLogic gl;
-	private HighScoreTable hs;
 	
 	// USED FOR SETTING GRID SIZE
 	public String gridSize;
 	public int gridSizeH, gridSizeV, frameSizeH, frameSizeV;
 	public int numberOfMines;
-	
-	// USED FOR SETTING ANIMATIONS OPTION
-	public boolean animate;
+        public Time timeLimit;
 	
 	// GLOBAL FONTS
 	private Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
@@ -52,12 +50,17 @@ public class Display {
         private TasteDevice tasteDevice;
 	
 	// CONSTRUCTOR
-	public Display(String gridSize, Boolean animate, TasteDevice td) {
+	public Display(String gridSize, TasteDevice td) {
             
                 tasteDevice = td;
             
 		if(gridSize.equalsIgnoreCase("large"))
 		{
+                        try {
+                            this.timeLimit = new Time(0,3,0);
+                        } catch (InvalidTimeException ex) {
+                            this.errorDialog("There was an error initiating the timer.");
+                        }
 			this.gridSize = "large";
 			this.numberOfMines = 85;
 			this.gridSizeH = 16;
@@ -67,6 +70,11 @@ public class Display {
 		}
 		else if(gridSize.equalsIgnoreCase("medium"))
 		{
+                        try {
+                            this.timeLimit = new Time(0,2,0);
+                        } catch (InvalidTimeException ex) {
+                            this.errorDialog("There was an error initiating the timer.");
+                        }
 			this.gridSize = "medium";
 			this.numberOfMines = 40;
 			this.gridSizeH = 16;
@@ -76,6 +84,11 @@ public class Display {
 		}
 		else
 		{
+                        try {
+                            this.timeLimit = new Time(0,1,0);
+                        } catch (InvalidTimeException ex) {
+                            this.errorDialog("There was an error initiating the timer.");
+                        }
 			this.gridSize = "small";
 			this.numberOfMines = 10;
 			this.gridSizeH = 8;
@@ -88,9 +101,7 @@ public class Display {
 		setUpTextFields();
 		// --------------------------------------
 		
-		this.animate = animate;
-		hs = new HighScoreTable(this);
-		gl = new GameLogic(this, hs, td);
+		gl = new GameLogic(this, td, timeLimit);
 
 		setUpFrame();
 		setUpPanels();
@@ -108,6 +119,10 @@ public class Display {
 		f.setVisible(true);
 		f.addKeyListener(new FrameKeyListener(gl, this, td));
 	}
+        
+        protected void errorDialog(String errorMsg) {
+            JOptionPane.showMessageDialog(f, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
+        }
 	
 	// INITIALIZATION METHODS
 	private void setUpFrame() {
@@ -142,29 +157,23 @@ public class Display {
 		pnlBottomW.setBackground(Color.decode(backgroundColour));	
 	}
 	private void setUpButtons() {
-		highScores = new JButton("High Scores");
 		newGame = new JButton("New Game");
 		help = new JButton("      Help      ");
 		
-		highScores.setFont(font);
 		help.setFont(font);
 		newGame.setFont(fontBigger);
 		
-		highScores.setMargin(new Insets(1,2,1,2));
-		help.setMargin(new Insets(1,2,1,2));
+                help.setMargin(new Insets(1,2,1,2));
 		newGame.setMargin(new Insets(1,5,1,5));
 		
-		highScores.setBackground(Color.decode(enabledGridColour));
 		help.setBackground(Color.decode(enabledGridColour));
 		newGame.setBackground(Color.decode(enabledGridColour));
 		
-		highScores.setFocusable(false);
 		newGame.setFocusable(false);
 		help.setFocusable(false);
-				
-		highScores.addActionListener(new ButtonListener(this, gl, hs));
-		help.addActionListener(new ButtonListener(this, gl, hs));
-		newGame.addActionListener(new ButtonListener(this, gl, hs));
+                
+		help.addActionListener(new ButtonListener(this, gl));
+		newGame.addActionListener(new ButtonListener(this, gl));
 	}
 	private void setUpImages() {
 		imgTime = new JLabel(new ImageIcon(this.getClass().getResource("/images/stopwatch.png")));
@@ -174,7 +183,6 @@ public class Display {
 		animationStatus = new JLabel();
 		animationStatus.setForeground(Color.decode(hoverOverGridColor));
 		animationStatus.setHorizontalAlignment(SwingConstants.CENTER);
-		animationStatus.setText(animate ? "Animations: On" : "Animations: Off");
 		
 		animationStatus.setFont(gridSize.equalsIgnoreCase("small") ? font : fontBigger);
 	}
@@ -186,7 +194,6 @@ public class Display {
 		tfTime = new JTextField(5);
 		tfMine = new JTextField(5);
 		
-		tfTime.setText("00:00:00");
 		tfMine.setText(numberOfMines + "F / " + numberOfMines);
 
 		tfTime.setFocusable(false);
@@ -204,7 +211,6 @@ public class Display {
 		
 		addButtonsToMinefield();
 		
-		pnlBottomW.add(highScores);
 		pnlBottomC.add(newGame);
 		pnlBottomE.add(help);
 	}

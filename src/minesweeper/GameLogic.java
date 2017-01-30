@@ -18,8 +18,8 @@ public class GameLogic {
 	private Timer timer;
 	public Thread timerThread;
 	private Thread shakeTheScreenThread;
-	private HighScoreTable hs;
         private TasteDevice td;
+        private Time time;
 
 	// VARIABLES
 	public int clickCount = 0;
@@ -31,9 +31,8 @@ public class GameLogic {
 	
 
 	// CONSTRUCTOR
-	public GameLogic(Display d, HighScoreTable hs, TasteDevice td) {
+	public GameLogic(Display d, TasteDevice td, Time time) {
 		this.d = d;
-		this.hs = hs;
                 this.td = td;
 		
 		gameFinished = false;
@@ -45,9 +44,14 @@ public class GameLogic {
 		
 		isChecked = new boolean[d.gridSizeH][d.gridSizeV];
 
-		timer = new Timer(d, this);
+                this.time = time;
+                
+		timer = new Timer(d, this, td, time);
 		timerThread = new Thread(timer);
 		timerThread.start();
+                if(td != null) {
+                    td.deliverTaste(Taste.SOUR, 2000);
+                }
 	}
 
 	// GAMELOGIC METHODS
@@ -209,41 +213,15 @@ public class GameLogic {
 	}
 	
 	private void showMines() {
-		if(d.animate)
-		{
-			try 
-			{
-				for(int m = 0; m < mineLocations.length; m++)
-				{
-					d.mines[mineLocations[m].y][mineLocations[m].x].setIcon(d.iconMine);
-					Thread.sleep(450 / d.numberOfMines);
-					d.pnlMinefield.paintImmediately(0, 0, d.pnlMinefield.getWidth(), d.pnlMinefield.getHeight());
-				}
-			}
-			
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}	
-		}
-		
-		else
-		{
-			for(int m = 0; m < mineLocations.length; m++)
-			{
-				d.mines[mineLocations[m].y][mineLocations[m].x].setIcon(d.iconMine);
-			}
-			
-			d.pnlMinefield.paintImmediately(0, 0, d.pnlMinefield.getWidth(), d.pnlMinefield.getHeight());
-		}
+
+            for(int m = 0; m < mineLocations.length; m++)
+            {
+                    d.mines[mineLocations[m].y][mineLocations[m].x].setIcon(d.iconMine);
+            }
+
+            d.pnlMinefield.paintImmediately(0, 0, d.pnlMinefield.getWidth(), d.pnlMinefield.getHeight());
 	}
-	private void shakeScreen() {
-		if(d.animate)
-		{
-			shakeTheScreenThread = null;
-			shakeTheScreenThread = new Thread(new ShakeTheScreen(d, this));
-			shakeTheScreenThread.start();			
-		}
-	}
+        
 	private void simpleSleep(int i) {
 		try 
 		{
@@ -406,41 +384,34 @@ public class GameLogic {
 	private void gameWon() {
 		// interrupt to stop the clock
 		timerThread.interrupt();
-		
+                
                 // Deliver the taste to the user
-                td.deliverTaste(Taste.SWEET, 2000);
+                if(td != null) {
+                    td.deliverTaste(Taste.SWEET, 2000);
+                }
                 
 		// sets boolean true, preventing further user interaction with the grid
 		gameFinished = true;
 		
 		// congratulations
 		JOptionPane.showMessageDialog(d.f, "Winner!");
-		String name = JOptionPane.showInputDialog(d.f, "What is your name?", "High Score Entry", JOptionPane.QUESTION_MESSAGE);
-		String time = d.tfTime.getText();
-		
-		if (name == null)
-			name = "";
-		
-		if(name.length() > 14) // if name is too long, truncate it
-			name = name.substring(0,14);
-		
-		hs.addToHighScores(name, time);
 		
 		// enable new game button
 		d.showNewGame();
 	}
-	private void gameLost() {
+	public void gameLost() {
 		// stops the clock
 		timerThread.interrupt();
-		
+                
                 // Deliver the taste to the user
-                td.deliverTaste(Taste.BITTER, 2000);
+                if(td != null) {
+                    td.deliverTaste(Taste.BITTER, 2000);
+                }
                 
 		// sets boolean true, preventing further user interaction with the grid
 		gameFinished = true;
 		
 		// show location of all mines
-		shakeScreen();
 		showMines();
 		
 		// needs a short pause before moving on
@@ -452,6 +423,10 @@ public class GameLogic {
 		// enable new game button
 		d.showNewGame();
 	}
+        public void gameLost(String msg) {
+            d.errorDialog(msg);
+            gameLost();
+        }
 	public void resetGame() {
 		// Reset boolean
 		gameFinished = false;
@@ -483,9 +458,8 @@ public class GameLogic {
 		assignRandomMines();
 
 		// Reset Timer
-		d.tfTime.setText("00:00:00");
 		timerThread.interrupt();
-		timerThread = new Thread(new Timer(d, this));
+		timerThread = new Thread(new Timer(d, this, td, time));
 		timerThread.start();
 		
 		// Hide 'New Game' Button

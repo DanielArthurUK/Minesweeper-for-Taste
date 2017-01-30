@@ -35,14 +35,14 @@ public class FrameKeyListener implements KeyListener {
 				d.f.dispose();
 				gl.timerThread.interrupt();
 				gl.timerThread.stop();
-				new Display(tempGridSize, d.animate, td);
+				new Display(tempGridSize, td);
 			}
 		}
 		else
 		{
 			d.f.dispose();
 			gl.timerThread.interrupt();
-			new Display(tempGridSize, d.animate, td);				
+			new Display(tempGridSize, td);				
 		}
 	}
 	private void newGame() {
@@ -63,11 +63,7 @@ public class FrameKeyListener implements KeyListener {
 	
 	@Override
 	public void keyPressed(KeyEvent arg0) {
-		if(arg0.isControlDown() && arg0.getKeyCode() == 84) { // Ctrl & t key pressed
-			d.animate = (d.animate) ? false : true;
-			d.animationStatus.setText(d.animate ? "Animations: On" : "Animations: Off");
-		}
-
+		
 		if((arg0.isControlDown() && arg0.getKeyCode() == 83) // Ctrl & s key pressed
 				|| (arg0.isControlDown() && arg0.getKeyCode() == 77) // Ctrl & m key pressed
 				|| (arg0.isControlDown() && arg0.getKeyCode() == 76)) { // Ctrl & l key pressed

@@ -1,35 +1,34 @@
 package minesweeper;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import uk.danielarthur.tasteapi.TasteDevice;
+
 public class Timer implements Runnable {
 
 	// REFERENCES TO OTHER CLASSES
 	private Display d;
 	private GameLogic gl;
+        private TasteDevice td;
+        private Time t;
 
 	// CLASS VARIABLES
-	public int seconds, minutes, hours;
-	public String strSeconds, strMinutes, strHours;
 	public boolean stopped;
 
 	// CONSTRUCTOR
-	public Timer(Display d, GameLogic gl) {
+	public Timer(Display d, GameLogic gl, TasteDevice td, Time t) {
 		this.d = d;
 		this.gl = gl;
-		
-		seconds = 0;
-		minutes = 0;
-		hours = 0;
-		
-		strSeconds = "00";
-		strMinutes = "00";
-		strHours = "00";
+                this.t = t;
 		
 		stopped = false;
+                
+                d.tfTime.setText(t.toString());
 	}
 
 	@Override
 	public void run() {
-		while (!stopped) {
+		while (!stopped && !t.expired()) {
 			try 
 			{	
 				// Sysout used only to refresh the thread.
@@ -38,51 +37,27 @@ public class Timer implements Runnable {
 				if (gl.clickCount > 0) {
 					
 					Thread.sleep(1000);
-					if (seconds < 59) 
-					{
-						seconds++;
-						strSeconds = seconds < 10 ? "0"+Integer.toString(seconds) : Integer.toString(seconds);
-					}
-					else 
-					{
-						seconds = 0;
-						strSeconds = "00";
-						
-						if (minutes < 59) 
-						{
-							minutes++;
-							strMinutes = minutes < 10 ? "0"+Integer.toString(minutes) : Integer.toString(minutes);
-						}
-						else 
-						{
-							minutes = 0;
-							strMinutes = "00";
-							
-							hours++;
-							strHours = hours < 10 ? "0"+Integer.toString(hours) : Integer.toString(hours);
-						}
-						
-					}
-					d.tfTime.setText(strHours+":"+strMinutes+":"+strSeconds);
+                                    try {
+                                        t.decrementSecond();
+                                    } catch (InvalidTimeException ex) {
+                                        d.errorDialog("A fatal error occurred when counting down the timer.");
+                                    }
+					d.tfTime.setText(t.toString());
 					
 				}
 			}
 			
 			
 			catch (InterruptedException e) 
-			{	
-				seconds = 0;
-				minutes = 0;
-				hours = 0;
-				
-				strSeconds = "00";
-				strMinutes = "00";
-				strHours = "00";
-				
+                        {
+				t.reset();
 				stopped = true;
 			}
 			
 		}
+                if(t.expired() && !gl.gameFinished) {
+                    gl.gameLost("You ran out of time and lost the game!");
+                }
 	}
 
 }
