@@ -1,4 +1,4 @@
-![Tastebud](https://danielarthur.uk/taste/logo/png)
+![Tastebud](https://danielarthur.uk/taste/logo.png)
 # Minesweeper for Taste
 ## Developed for Tastebud
 
