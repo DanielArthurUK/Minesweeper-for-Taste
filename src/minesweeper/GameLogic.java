@@ -399,13 +399,17 @@ public class GameLogic {
 		// enable new game button
 		d.showNewGame();
 	}
-	public void gameLost() {
+	public void gameLost(String msg) {
 		// stops the clock
 		timerThread.interrupt();
                 
                 // Deliver the taste to the user
                 if(td != null) {
                     td.deliverTaste(Taste.BITTER, 2000);
+                }
+                
+                if(msg != null) {
+                    d.errorDialog(msg);
                 }
                 
 		// sets boolean true, preventing further user interaction with the grid
@@ -423,9 +427,8 @@ public class GameLogic {
 		// enable new game button
 		d.showNewGame();
 	}
-        public void gameLost(String msg) {
-            d.errorDialog(msg);
-            gameLost();
+        public void gameLost() {
+            gameLost(null);
         }
 	public void resetGame() {
 		// Reset boolean

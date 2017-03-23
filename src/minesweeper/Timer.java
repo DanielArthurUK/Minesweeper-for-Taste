@@ -2,6 +2,7 @@ package minesweeper;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.danielarthur.tasteapi.Taste;
 import uk.danielarthur.tasteapi.TasteDevice;
 
 public class Timer implements Runnable {
@@ -20,6 +21,7 @@ public class Timer implements Runnable {
 		this.d = d;
 		this.gl = gl;
                 this.t = t;
+                this.td = td;
 		
 		stopped = false;
                 
@@ -35,8 +37,17 @@ public class Timer implements Runnable {
 				System.out.print("");
 				
 				if (gl.clickCount > 0) {
-					
-					Thread.sleep(1000);
+                                    
+                                    if(td != null) {
+                                        if(t.getHours() == 0
+                                                && t.getMinutes() == 0
+                                                && t.getSeconds() == 10) {
+                                            td.deliverTaste(Taste.SOUR, 2000);
+                                        }
+                                    }
+                                    
+                                    Thread.sleep(1000);
+                                    
                                     try {
                                         t.decrementSecond();
                                     } catch (InvalidTimeException ex) {
