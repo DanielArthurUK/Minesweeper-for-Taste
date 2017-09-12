@@ -4,21 +4,14 @@ import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import uk.danielarthur.tasteapi.TasteDevice;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.*;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
-
+/**
+ * The window shown to the user upon opening the Minesweeper Application
+ */
 public class WelcomeDisplay {
     
     private JFrame f;
@@ -27,70 +20,97 @@ public class WelcomeDisplay {
     private JTextField comPortField;
     private JButton submitButton;
     private JButton noTasteButton;
-    private JPanel buttonsPanel;
-    
-    
+    private JPanel buttonsPanel, comPortPanel, pidPanel;
+    private JTextField pid;
+    private JCheckBox tasteCheck;
+
+    /**
+     * Creates and shows a new Welcome display window.
+     */
     public WelcomeDisplay() {
         setUpFrame();
         setUpComponents();
         addListeners();
+        checkEnabled();
         f.setVisible(true);
     }
-    
+
+    /**
+     * Sets up some characteristics of the JFrame, such as the title and size of the window etc.
+     */
     private void setUpFrame() {
         f = new JFrame("Minesweeper for Taste");
-        f.setLayout(new BorderLayout());
+        f.setPreferredSize(new Dimension(300, 400));
+        f.getContentPane().setLayout(new BorderLayout());
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-    
+
+    /**
+     * Sets up the components of the window, such as the text fields.
+     */
     private void setUpComponents() {
-        infoLabel = new JLabel("Please enter the COM Port of the connected taste device:");
+
+        f.getContentPane().add(new JLabel("Welcome to a taste-enhanced game of Minesweeper!"), BorderLayout.NORTH);
+
+        JPanel rest = new JPanel(new GridLayout(3,2));
+
+        rest.add(new JLabel("Participant ID:"));
+        pid = new JTextField();
+        rest.add(pid);
+
+        rest.add(new JLabel("Playing with Tastebud?"));
+        tasteCheck = new JCheckBox("", true);
+        rest.add(tasteCheck);
+
+        rest.add(new JLabel("COM Port of Tastebud:"));
         comPortField = new JTextField();
-        
-        buttonsPanel = new JPanel(new BorderLayout());
-        
+        rest.add(comPortField);
+
+        f.getContentPane().add(rest, BorderLayout.CENTER);
+
         submitButton = new JButton("Start");
-        noTasteButton = new JButton("Use Without Taste");
-        
-        buttonsPanel.add(submitButton, BorderLayout.WEST);
-        buttonsPanel.add(noTasteButton, BorderLayout.EAST);
-        
-        f.getContentPane().add(infoLabel, BorderLayout.NORTH);
-        f.getContentPane().add(comPortField, BorderLayout.CENTER);
-        f.getContentPane().add(buttonsPanel, BorderLayout.SOUTH);
+        f.add(submitButton, BorderLayout.SOUTH);
         
         f.pack();
     }
-    
+
+    /**
+     * Adds action listeners to each of the buttons in the window.
+     */
     private void addListeners() {
-        submitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String comPort = comPortField.getText();
-                try {
+        submitButton.addActionListener(ae -> {
+            String comPort = comPortField.getText();
+            try {
+                if(tasteCheck.isSelected()) {
                     TasteDevice td = new TasteDevice("Minesweeper Taste", comPort);
-                    new Display("small", td);
+                    Logger l = new Logger(pid.getText(), "C:/minesweeper-logs/");
+                    l.log("Game started with Taste ENABLED.");
+                    new Display("small", td, l);
                     f.setVisible(false);
                     f.dispose();
-                } catch (NoSuchPortException ex) {
-                    JOptionPane.showMessageDialog(f, "Error: This port does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
-                } catch (PortInUseException ex) {
-                    JOptionPane.showMessageDialog(f, "Error: This port is already in use.", "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    Logger l = new Logger(pid.getText(), "C:/minesweeper-logs/");
+                    l.log("Game started with Taste DISABLED.");
+                    new Display("small", null, l);
+                    f.setVisible(false);
+                    f.dispose();
                 }
-                
+            } catch (NoSuchPortException ex) {
+                JOptionPane.showMessageDialog(f, "Error: This port does not exist.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (PortInUseException ex) {
+                JOptionPane.showMessageDialog(f, "Error: This port is already in use.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        
+
         });
-        
-        noTasteButton.addActionListener(new ActionListener() {    
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Display("small", null);
-                f.setVisible(false);
-                f.dispose();
-            }
-            
+        tasteCheck.addActionListener(ae->{
+            checkEnabled();
         });
     }
-    
+
+    /**
+     * Checks whether the "Tastebud" checkbox is enabled and enables/disables the COM port tet field accordingly.
+     */
+    private void checkEnabled() {
+        comPortField.setEnabled(tasteCheck.isSelected());
+    }
 }

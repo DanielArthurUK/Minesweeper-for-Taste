@@ -18,49 +18,99 @@ import javax.swing.SwingConstants;
 
 import uk.danielarthur.tasteapi.TasteDevice;
 
+/**
+ * The Display window of the Minesweeper game.
+ */
 public class Display {
 
+	/**
+	 * The Frame itself
+	 */
 	public JFrame f;
+
+	/**
+	 * The panels used in the frame.
+	 */
 	public JPanel pnlTop, pnlTopE, pnlTopC, pnlTopW, pnlMinefield, pnlBottom, pnlBottomE, pnlBottomC, pnlBottomW;
+
+	/**
+	 * Two-dimensional array containing the mines
+	 */
 	public JButton[][] mines;
+
+	/**
+	 * New game and help buttons
+	 */
 	public JButton newGame, help;
+
+	/**
+	 * Text fields showing timer and the number of mines that have been placed.
+	 */
 	public JTextField tfTime, tfMine;
+
+	/**
+	 * Various labels used in the UI.
+	 */
 	public JLabel imgTime, imgMine, imgFlag, animationStatus;
+
+	/**
+	 * Image icons of a mine and a flag.
+	 */
 	public ImageIcon iconMine, iconFlag;
 	
-	// REFERENCES TO OTHER CLASSES
 	private GameLogic gl;
+	private Logger logger;
 	
-	// USED FOR SETTING GRID SIZE
+	/**
+	 * String representing the grid size.
+	 */
 	public String gridSize;
+
+	/**
+	 * Integers representing more in depth grid sizes.
+	 */
 	public int gridSizeH, gridSizeV, frameSizeH, frameSizeV;
+
+	/**
+	 * The number of mines in the field.
+	 */
 	public int numberOfMines;
-        public Time timeLimit;
+
+	/**
+	 * The time limit for the current game.
+	 */
+	public Time timeLimit;
 	
-	// GLOBAL FONTS
 	private Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
 	private Font fontBigger = new Font(Font.SANS_SERIF, Font.BOLD, 12);
-	
-	// COLOURS
+
+	/**
+	 * The different colours used in the UI.
+	 */
 	public String backgroundColour = "#151515";
 	public String enabledGridColour = "#DDDDDD";
 	public String disabledGridColour = "#2E2E2E";
 	public String hoverOverGridColor = "#A6BBCC";
         
-        private TasteDevice tasteDevice;
-	
-	// CONSTRUCTOR
-	public Display(String gridSize, TasteDevice td) {
-            
-                tasteDevice = td;
+	private TasteDevice tasteDevice;
+
+	/**
+	 * Creates a new Display of the given size, with a TasteDevice and log file.
+	 * @param gridSize The size of the grid: "small", "medium" and "large" accepted.
+	 * @param td The TasteDevice to receive taste through, or null if the game is being played without one.
+	 * @param logger The Logger object to produce log files.
+	 */
+	public Display(String gridSize, TasteDevice td, Logger logger) {
+		this.logger = logger;
+		tasteDevice = td;
             
 		if(gridSize.equalsIgnoreCase("large"))
 		{
-                        try {
-                            this.timeLimit = new Time(0,3,0);
-                        } catch (InvalidTimeException ex) {
-                            this.errorDialog("There was an error initiating the timer.");
-                        }
+			try {
+				this.timeLimit = new Time(0,3,0);
+			} catch (InvalidTimeException ex) {
+				this.errorDialog("There was an error initiating the timer.");
+			}
 			this.gridSize = "large";
 			this.numberOfMines = 85;
 			this.gridSizeH = 16;
@@ -70,11 +120,11 @@ public class Display {
 		}
 		else if(gridSize.equalsIgnoreCase("medium"))
 		{
-                        try {
-                            this.timeLimit = new Time(0,2,0);
-                        } catch (InvalidTimeException ex) {
-                            this.errorDialog("There was an error initiating the timer.");
-                        }
+			try {
+				this.timeLimit = new Time(0,2,0);
+			} catch (InvalidTimeException ex) {
+				this.errorDialog("There was an error initiating the timer.");
+			}
 			this.gridSize = "medium";
 			this.numberOfMines = 40;
 			this.gridSizeH = 16;
@@ -84,11 +134,11 @@ public class Display {
 		}
 		else
 		{
-                        try {
-                            this.timeLimit = new Time(0,1,0);
-                        } catch (InvalidTimeException ex) {
-                            this.errorDialog("There was an error initiating the timer.");
-                        }
+			try {
+				this.timeLimit = new Time(0,1,0);
+			} catch (InvalidTimeException ex) {
+				this.errorDialog("There was an error initiating the timer.");
+			}
 			this.gridSize = "small";
 			this.numberOfMines = 10;
 			this.gridSizeH = 8;
@@ -97,10 +147,8 @@ public class Display {
 			this.frameSizeV = 375;
 		}
 		
-		// SPECIAL CASE. NEED tfTime TO BE INITIALIZED BEFORE NEWING GameLogic
 		setUpTextFields();
-		// --------------------------------------
-		
+
 		gl = new GameLogic(this, td, timeLimit);
 
 		setUpFrame();
@@ -115,16 +163,22 @@ public class Display {
 		addPanelsToPanels();
 		addPanelsToFrame();
 		
-		// SET FRAME VISIBLE
 		f.setVisible(true);
 		f.addKeyListener(new FrameKeyListener(gl, this, td));
 	}
         
-        protected void errorDialog(String errorMsg) {
-            JOptionPane.showMessageDialog(f, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
-        }
-	
-	// INITIALIZATION METHODS
+	protected void errorDialog(String errorMsg) {
+		JOptionPane.showMessageDialog(f, errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
+	/**
+	 * Returns the Logger object used to create log files.
+	 * @return The logger object used to create log files.
+	 */
+	public Logger getLogger() {
+		return logger;
+	}
+
 	private void setUpFrame() {
 		f = new JFrame("Minesweeper");
 		f.setLayout(new BorderLayout());
@@ -134,6 +188,7 @@ public class Display {
 		f.setResizable(false);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
+
 	private void setUpPanels() {
 		pnlTop = new JPanel(new BorderLayout());
 		pnlTopE = new JPanel(new FlowLayout());
@@ -145,6 +200,7 @@ public class Display {
 		pnlBottomC = new JPanel(new FlowLayout());
 		pnlBottomW = new JPanel(new FlowLayout());
 	}
+
 	private void setPanelBackground() {
 		pnlTop.setBackground(Color.decode(backgroundColour));
 		pnlTopE.setBackground(Color.decode(backgroundColour));
@@ -156,6 +212,7 @@ public class Display {
 		pnlBottomC.setBackground(Color.decode(backgroundColour));
 		pnlBottomW.setBackground(Color.decode(backgroundColour));	
 	}
+
 	private void setUpButtons() {
 		newGame = new JButton("New Game");
 		help = new JButton("      Help      ");
@@ -175,6 +232,7 @@ public class Display {
 		help.addActionListener(new ButtonListener(this, gl));
 		newGame.addActionListener(new ButtonListener(this, gl));
 	}
+
 	private void setUpImages() {
 		imgTime = new JLabel(new ImageIcon(this.getClass().getResource("/images/stopwatch.png")));
 		imgMine = new JLabel(new ImageIcon(this.getClass().getResource("/images/Mine2_032x032_32.png")));
@@ -186,10 +244,12 @@ public class Display {
 		
 		animationStatus.setFont(gridSize.equalsIgnoreCase("small") ? font : fontBigger);
 	}
+
 	private void setUpIcons() {
 		iconMine = new ImageIcon(this.getClass().getResource("/images/Mine_024x024_32.png"));
 		iconFlag = new ImageIcon(this.getClass().getResource("/images/Flag_024x024_32.png"));
 	}
+
 	private void setUpTextFields() {
 		tfTime = new JTextField(5);
 		tfMine = new JTextField(5);
@@ -202,6 +262,7 @@ public class Display {
 		tfTime.setFont(fontBigger);
 		tfMine.setFont(fontBigger);
 	}
+
 	private void addComponentsToPanels() {
 		pnlTopW.add(imgTime);
 		pnlTopW.add(tfTime);
@@ -214,6 +275,7 @@ public class Display {
 		pnlBottomC.add(newGame);
 		pnlBottomE.add(help);
 	}
+
 	private void addButtonsToMinefield() {
 		mines = new JButton[gridSizeH][gridSizeV];
 		for(int i = 0; i < gridSizeH; i++)
@@ -228,6 +290,7 @@ public class Display {
 				pnlMinefield.add(mines[i][j]);
 			}
 	}
+
 	private void addPanelsToPanels() {
 		pnlTop.add(pnlTopE, BorderLayout.EAST);
 		pnlTop.add(pnlTopC, BorderLayout.CENTER);
@@ -237,19 +300,20 @@ public class Display {
 		pnlBottom.add(pnlBottomC, BorderLayout.CENTER);
 		pnlBottom.add(pnlBottomW, BorderLayout.WEST);
 	}
+
 	private void addPanelsToFrame() {
 		f.add(pnlTop, BorderLayout.NORTH);
 		f.add(pnlMinefield, BorderLayout.CENTER);
 		f.add(pnlBottom, BorderLayout.SOUTH);
 	}
-	
-	// OTHER METHODS
+
 	public void hideNewGame() {
 		newGame.setContentAreaFilled(false);
 		newGame.setBorderPainted(false);
 		newGame.setForeground(Color.decode(backgroundColour));
 		newGame.setFocusable(false);
 	}
+
 	public void showNewGame() {
 		newGame.setContentAreaFilled(true);
 		newGame.setBorderPainted(true);

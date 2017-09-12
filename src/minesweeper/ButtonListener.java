@@ -5,6 +5,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JOptionPane;
 
+/**
+ * This class is part of the original Minesweeper game by Osama Alqasim and has not been
+ * edited in any way. Refer to the report for full references of the original author.
+ */
 public class ButtonListener implements ActionListener {
 
 	// REFERENCES TO OTHER CLASSES

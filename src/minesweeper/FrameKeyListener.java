@@ -7,14 +7,22 @@ import javax.swing.JOptionPane;
 
 import uk.danielarthur.tasteapi.TasteDevice;
 
+/**
+ * An implemented KeyListener used for the Minesweeper game.
+ */
 public class FrameKeyListener implements KeyListener {
 
 	// REFERENCES TO OTHER CLASSES
 	private GameLogic gl;
 	private Display d;
         private TasteDevice td;
-	
-	// CONSTRUCTOR
+
+	/**
+	 * Create a new KeyListener given the GameLogic, Display and TasteDevice.
+	 * @param gl The GameLogic used for this Minesweeper game.
+	 * @param d The display used for this game.
+	 * @param td The TasteDevice to deliver tastes through, or null if game is being played without taste.
+	 */
 	public FrameKeyListener(GameLogic gl, Display d, TasteDevice td)
 	{
 		this.gl = gl;
@@ -35,14 +43,14 @@ public class FrameKeyListener implements KeyListener {
 				d.f.dispose();
 				gl.timerThread.interrupt();
 				gl.timerThread.stop();
-				new Display(tempGridSize, td);
+				new Display(tempGridSize, td, d.getLogger().newInstance());
 			}
 		}
 		else
 		{
 			d.f.dispose();
 			gl.timerThread.interrupt();
-			new Display(tempGridSize, td);				
+			new Display(tempGridSize, td, d.getLogger().newInstance());
 		}
 	}
 	private void newGame() {

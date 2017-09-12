@@ -7,8 +7,15 @@
 */
 package minesweeper;
 
+/**
+ * Starts the Minesweeper game
+ */
 public class Starter {
-    
+
+    /**
+     * Creates a new WelcomeDisplay and shows it to the user.
+     * @param args No args used.
+     */
     public static void main(String[] args) {
         new WelcomeDisplay();
     }

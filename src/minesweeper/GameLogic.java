@@ -3,6 +3,7 @@ package minesweeper;
 import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -11,29 +12,47 @@ import uk.danielarthur.tasteapi.Taste;
 
 import uk.danielarthur.tasteapi.TasteDevice;
 
+/**
+ * A class representing the logic of each Minesweeper game.
+ */
 public class GameLogic {
 
-	// REFERENCES TO OTHER CLASSES
 	private Display d;
 	private Timer timer;
 	public Thread timerThread;
 	private Thread shakeTheScreenThread;
-        private TasteDevice td;
-        private Time time;
+	private TasteDevice td;
+	private Time time;
 
-	// VARIABLES
+	/**
+	 * The number of clicks in the current game.
+	 */
 	public int clickCount = 0;
+
+	/**
+	 * True if game is finished, false otherwise.
+	 */
 	public boolean gameFinished;
+
+	/**
+	 * The number of mines left to find, and the number of flags allowed to be placed in the game.
+	 */
 	public int minesLeftToFind, flagAllowance;
+
 	private Point[] mineLocations;
 	private List<Point> emptyAdjPointsArrayList;
 	private boolean[][] isChecked;
-	
+	private int tempFreeSpaces;
 
-	// CONSTRUCTOR
+	/**
+	 * Create a new GameLogic class attached to a Display, TasteDevice and Time
+	 * @param d The Display that the game will be shown in
+	 * @param td The TasteDevice to deliver tastes through, or null if the game is being played without taste.
+	 * @param time The Time limit that this game starts with.
+	 */
 	public GameLogic(Display d, TasteDevice td, Time time) {
 		this.d = d;
-                this.td = td;
+		this.td = td;
 		
 		gameFinished = false;
 
@@ -44,17 +63,17 @@ public class GameLogic {
 		
 		isChecked = new boolean[d.gridSizeH][d.gridSizeV];
 
-                this.time = time;
+		this.time = time;
                 
 		timer = new Timer(d, this, td, time);
 		timerThread = new Thread(timer);
 		timerThread.start();
-                if(td != null) {
-                    td.deliverTaste(Taste.SOUR, 2000);
-                }
+
+		tempFreeSpaces = 0;
+
+		d.getLogger().log(timer.getTime(), "Game started!");
 	}
 
-	// GAMELOGIC METHODS
 	private void assignRandomMines() {
 		Random r = new Random();
 		boolean safeToAdd = true;
@@ -89,6 +108,7 @@ public class GameLogic {
 		}
 			
 	}
+
 	private boolean checkForMines(int i, int k) {
 		for(int m = 0; m < mineLocations.length; m++)
 		{
@@ -111,7 +131,9 @@ public class GameLogic {
 		
 		return false;
 	}
+
 	private void findAdjacentMines(int i, int k) {
+
 		int adjacentMines = 0;
 				
 		if(checkForMines(i+1,k-1))
@@ -141,6 +163,9 @@ public class GameLogic {
 		}
 		else
 		{
+
+			tempFreeSpaces++;
+
 			d.mines[i][k].setBackground(Color.decode(d.disabledGridColour));
 			d.mines[i][k].setEnabled(false);
 			
@@ -196,6 +221,7 @@ public class GameLogic {
 
 		}
 	}
+
 	private boolean findAdjacentEmpty(int i, int k) {
 		try
 		{
@@ -232,7 +258,12 @@ public class GameLogic {
 			System.out.println("Sleep interrupted");
 		}
 	}
-	
+
+	/**
+	 * Applies the logic of placing a flag down at a specific cell.
+	 * @param i The row of the flagged cell.
+	 * @param k The column of the flagged cell.
+	 */
 	public void flagLogic(int i, int k) {
 		if (!gameFinished)
 		{
@@ -268,6 +299,12 @@ public class GameLogic {
 			}
 		}
 	}
+
+	/**
+	 * Applies the logic when a cell is clicked.
+	 * @param i The row of the clicked cell.
+	 * @param k The column of the clicked cell.
+	 */
 	public void mineLogic(int i, int k) {
 		if (!gameFinished)
 		{
@@ -275,16 +312,36 @@ public class GameLogic {
 			{
 				if (checkForMines(i, k)) // if there is a mine under that piece
 				{
+					d.getLogger().log(timer.getTime(), "Cell ("+i+", "+k+") contains a mine!");
 					gameLost();
 				}
 				else // this is the place where you examine adjacent mines
 				{
+					d.getLogger().log(timer.getTime(), "Cell ("+i+", "+k+") is safe!");
+
 					findAdjacentMines(i, k);
+
+					if(tempFreeSpaces > 5) {
+						d.getLogger().log(timer.getTime(), "Clicking on ("+i+", "+k+") revealed a safe space of size "+tempFreeSpaces);
+						// Deliver sweet taste to the user
+						if(td != null) {
+							td.deliverTaste(Taste.SWEET, 2000);
+							d.getLogger().log(timer.getTime(), "Sweet taste delivered.");
+						}
+					}
+					tempFreeSpaces = 0;
+
 					checkWin();
 				}
-			}			
+			}
 		}
 	}
+
+	/**
+	 * Applies "middle click" logic at a specific cell.
+	 * @param i The row of the clicked cell.
+	 * @param k The column of the clicked cell.
+	 */
 	public void middleClickLogic(int i, int k) {
 		// Check if its a valid button for this type of action.
 		if (d.mines[i][k].getText() != null && d.mines[i][k].getText().matches("[1-9]")){
@@ -373,22 +430,27 @@ public class GameLogic {
 					}									
 				}
 				
-				if(!allowGameWin)
+				if(!allowGameWin) {
 					break;
+				}
 			}
 			
-			if(allowGameWin)
+			if(allowGameWin) {
 				gameWon();
+			}
 		}
 	}
 	private void gameWon() {
 		// interrupt to stop the clock
 		timerThread.interrupt();
-                
-                // Deliver the taste to the user
-                if(td != null) {
-                    td.deliverTaste(Taste.SWEET, 2000);
-                }
+
+		d.getLogger().log(timer.getTime(), "Game won!");
+
+		// Deliver the taste to the user
+		if(td != null) {
+			td.deliverTaste(Taste.SWEET, 2000);
+			d.getLogger().log(timer.getTime(), "Sweet taste delivered.");
+		}
                 
 		// sets boolean true, preventing further user interaction with the grid
 		gameFinished = true;
@@ -399,18 +461,26 @@ public class GameLogic {
 		// enable new game button
 		d.showNewGame();
 	}
+
+	/**
+	 * A method called when the game is lost.
+	 * @param msg The message given to the loser when the game is lost.
+	 */
 	public void gameLost(String msg) {
 		// stops the clock
 		timerThread.interrupt();
-                
-                // Deliver the taste to the user
-                if(td != null) {
-                    td.deliverTaste(Taste.BITTER, 2000);
-                }
-                
-                if(msg != null) {
-                    d.errorDialog(msg);
-                }
+
+		d.getLogger().log(timer.getTime(), "Game lost!");
+
+		// Deliver the taste to the user
+		if(td != null) {
+			td.deliverTaste(Taste.BITTER, 2000);
+			d.getLogger().log(timer.getTime(), "Bitter taste delivered!");
+		}
+
+		if(msg != null) {
+			d.errorDialog(msg);
+		}
                 
 		// sets boolean true, preventing further user interaction with the grid
 		gameFinished = true;
@@ -420,17 +490,33 @@ public class GameLogic {
 		
 		// needs a short pause before moving on
 		simpleSleep(650);
-		
-		// pop up message
-		//JOptionPane.showMessageDialog(d.f, "Loser!");
-					
+
 		// enable new game button
 		d.showNewGame();
 	}
-        public void gameLost() {
+
+	/**
+	 * Returns the timer used in the game.
+	 * @return The timer used in the game.
+	 */
+	public Timer getTimer() {
+		return timer;
+	}
+
+	/**
+	 * The method called when the game is lost.
+	 */
+	public void gameLost() {
             gameLost(null);
         }
+
+	/**
+	 * Resets the current game.
+ 	 */
 	public void resetGame() {
+
+		d.getLogger().log(timer.getTime(), "The game has been reset. Start new game:");
+
 		// Reset boolean
 		gameFinished = false;
 		

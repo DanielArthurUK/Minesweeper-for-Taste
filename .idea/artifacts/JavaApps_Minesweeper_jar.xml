@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JavaApps-Minesweeper:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JavaApps_Minesweeper_jar</output-path>
+    <root id="archive" name="JavaApps-Minesweeper.jar">
+      <element id="module-output" name="JavaApps-Minesweeper" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/TasteAPI-Java-1.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
